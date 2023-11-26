@@ -1,6 +1,6 @@
 const express = require("express");
 const cors = require("cors");
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
@@ -48,10 +48,51 @@ async function run() {
     });
 
     app.get("/donationUsers", async (req, res) => {
-      // console.log(req.headers);
       const result = await donationUserCollection.find().toArray();
       res.send(result);
     });
+
+    app.patch("/donationUsers/:id", async (req, res) => {
+      const item = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateUserInfo = {
+        $set: {
+          name: item.name,
+          district: item.district,
+          upazila: item.upazila,
+          blodGroup: item.blodGroup,
+          image: item.image,
+        },
+      };
+      const result = await donationUserCollection.updateOne(filter, updateUserInfo);
+      res.send(result);
+    });
+
+    // app.get('/donationUsers/:email', async (req, res) => {
+    //   const query = { email: req.params.email }
+    //   // if (req.params.email !== req.decoded.email) {
+    //   //   return res.status(403).send({ message: 'forbidden access' });
+    //   // }
+    //   const result = await donationUserCollection.find(query).toArray();
+    //   res.send(result);
+    // })
+
+    // app.get('/donationUsers', async (req, res) => {
+    //   try {
+    //      if (!req.query.email) {
+    //        return res.status(400).json({ error: "No email provided" });
+    //      }
+ 
+    //      const email = req.query.email;
+    //      const query = { email: email };
+    //      const result = await userCollection.find(query).toArray();
+    //      res.json(result);
+    //    } catch (error) {
+    //      console.error("Error fetching user:", error);
+    //      res.status(500).json({ error: "Internal server error" });
+    //    }
+    //  })
 
     //  donator District related api:
     app.get("/donatorDistrict", async (req, res) => {
