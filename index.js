@@ -34,6 +34,9 @@ async function run() {
     const donatorUpazilaCollection = client
       .db("donationDB")
       .collection("donatorUpazila");
+    const donatorCreateRequestCollection = client
+      .db("donationDB")
+      .collection("donatorCreateRequest");
 
     // user related api:
     app.post("/donationUsers", async (req, res) => {
@@ -52,7 +55,7 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/donationUsers/:id", async (req, res) => {
+    app.patch("/dashboard/donationUsers/:id", async (req, res) => {
       const item = req.body;
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -65,7 +68,10 @@ async function run() {
           image: item.image,
         },
       };
-      const result = await donationUserCollection.updateOne(filter, updateUserInfo);
+      const result = await donationUserCollection.updateOne(
+        filter,
+        updateUserInfo
+      );
       res.send(result);
     });
 
@@ -83,7 +89,7 @@ async function run() {
     //      if (!req.query.email) {
     //        return res.status(400).json({ error: "No email provided" });
     //      }
- 
+
     //      const email = req.query.email;
     //      const query = { email: email };
     //      const result = await userCollection.find(query).toArray();
@@ -103,6 +109,16 @@ async function run() {
     //  donator Upazila related api:
     app.get("/donatorUpazila", async (req, res) => {
       const result = await donatorUpazilaCollection.find().toArray();
+      res.send(result);
+    });
+
+    // donor request related api:
+    app.post("/donatorCreateRequest", async (req, res) => {
+      const donatorCreateRequestInfo = req.body;
+      console.log(donatorCreateRequestInfo);
+      const result = await donatorCreateRequestCollection.insertOne(
+        donatorCreateRequestInfo
+      );
       res.send(result);
     });
 
