@@ -122,6 +122,37 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/donatorCreateRequest", async (req, res) => {
+      const cursor = donatorCreateRequestCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.put("/dashboard/donatorCreateRequest/:id", async (req, res) => {
+      const item = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDonorRequestInfo = {
+        $set: {
+          requesterName: item.requesterName,
+          requesterEmail: item.requesterEmail,
+          recipientName: item.recipientName,
+          requestMessage: item.requestMessage,
+          recipientDistrict: item.recipientDistrict,
+          recipientUpazila: item.recipientUpazila,
+          hospitalName: item.hospitalName,
+          hospitalAddress: item.hospitalAddress,
+          donationDate: item.donationDate,
+          donationTime: item.donationTime,
+        },
+      };
+      const result = await donatorCreateRequestCollection.updateOne(
+        filter,
+        updateDonorRequestInfo
+      );
+      res.send(result);
+    });
+
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
     console.log(
