@@ -37,6 +37,9 @@ async function run() {
     const donatorCreateRequestCollection = client
       .db("donationDB")
       .collection("donatorCreateRequest");
+    const adminAddBlogCollection = client
+      .db("donationDB")
+      .collection("adminAddBlog");
 
     // user related api:
     app.post("/donationUsers", async (req, res) => {
@@ -152,6 +155,59 @@ async function run() {
       );
       res.send(result);
     });
+
+    app.delete("/donatorCreateRequest/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await donatorCreateRequestCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    // Add Blog request related api:
+    app.post("/adminAddBlog", async (req, res) => {
+      const blogsContentInfo = req.body;
+      console.log("heloo", blogsContentInfo);
+      const result = await adminAddBlogCollection.insertOne(blogsContentInfo);
+      res.send(result);
+    });
+
+    // app.get("/donatorCreateRequest", async (req, res) => {
+    //   const cursor = donatorCreateRequestCollection.find();
+    //   const result = await cursor.toArray();
+    //   res.send(result);
+    // });
+
+    // app.put("/dashboard/donatorCreateRequest/:id", async (req, res) => {
+    //   const item = req.body;
+    //   const id = req.params.id;
+    //   const filter = { _id: new ObjectId(id) };
+    //   const updateDonorRequestInfo = {
+    //     $set: {
+    //       requesterName: item.requesterName,
+    //       requesterEmail: item.requesterEmail,
+    //       recipientName: item.recipientName,
+    //       requestMessage: item.requestMessage,
+    //       recipientDistrict: item.recipientDistrict,
+    //       recipientUpazila: item.recipientUpazila,
+    //       hospitalName: item.hospitalName,
+    //       hospitalAddress: item.hospitalAddress,
+    //       donationDate: item.donationDate,
+    //       donationTime: item.donationTime,
+    //     },
+    //   };
+    //   const result = await donatorCreateRequestCollection.updateOne(
+    //     filter,
+    //     updateDonorRequestInfo
+    //   );
+    //   res.send(result);
+    // });
+
+    // app.delete("/donatorCreateRequest/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id:new ObjectId(id) };
+    //   const result = await donatorCreateRequestCollection.deleteOne(query);
+    //   res.send(result);
+    // });
 
     // Send a ping to confirm a successful connection
     // await client.db("admin").command({ ping: 1 });
