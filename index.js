@@ -163,49 +163,81 @@ async function run() {
       res.send(result);
     });
 
-    // Add Blog request related api:
+    // Add Blog Admin request related api:
     app.post("/adminAddBlog", async (req, res) => {
       const blogsContentInfo = req.body;
-      console.log("heloo", blogsContentInfo);
+      console.log(blogsContentInfo);
       const result = await adminAddBlogCollection.insertOne(blogsContentInfo);
       res.send(result);
     });
 
-    // app.get("/donatorCreateRequest", async (req, res) => {
-    //   const cursor = donatorCreateRequestCollection.find();
-    //   const result = await cursor.toArray();
+    app.get("/adminAddBlog", async (req, res) => {
+      const result = await adminAddBlogCollection.find().toArray();
+      res.send(result);
+    });
+
+    app.delete("/adminAddBlog/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await adminAddBlogCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    app.put("/dashboard/adminAddBlog/:id", async (req, res) => {
+      const item = req.body;
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateAdminBlogInfo = {
+        $set: {
+          title: item.title,
+          content: item.content,
+          image: item?.image,
+          status: item.status,
+        },
+      };
+      const result = await adminAddBlogCollection.updateOne(
+        filter,
+        updateAdminBlogInfo
+      );
+      res.send(result);
+    });
+
+    // // Add Blog Volunteer request related api:
+    // app.post("/volunteerAddBlog", async (req, res) => {
+    //   const blogsContentInfo = req.body;
+    //   console.log(blogsContentInfo);
+    //   const result = await adminAddBlogCollection.insertOne(blogsContentInfo);
     //   res.send(result);
     // });
 
-    // app.put("/dashboard/donatorCreateRequest/:id", async (req, res) => {
+    // app.get("/volunteerAddBlog", async (req, res) => {
+    //   const result = await adminAddBlogCollection.find().toArray();
+    //   res.send(result);
+    // });
+
+    // app.delete("/volunteerAddBlog/:id", async (req, res) => {
+    //   const id = req.params.id;
+    //   const query = { _id: new ObjectId(id) };
+    //   const result = await adminAddBlogCollection.deleteOne(query);
+    //   res.send(result);
+    // });
+
+    // app.put("/dashboard/volunteerAddBlog/:id", async (req, res) => {
     //   const item = req.body;
     //   const id = req.params.id;
     //   const filter = { _id: new ObjectId(id) };
-    //   const updateDonorRequestInfo = {
+    //   const updateVolunteerBlogInfo = {
     //     $set: {
-    //       requesterName: item.requesterName,
-    //       requesterEmail: item.requesterEmail,
-    //       recipientName: item.recipientName,
-    //       requestMessage: item.requestMessage,
-    //       recipientDistrict: item.recipientDistrict,
-    //       recipientUpazila: item.recipientUpazila,
-    //       hospitalName: item.hospitalName,
-    //       hospitalAddress: item.hospitalAddress,
-    //       donationDate: item.donationDate,
-    //       donationTime: item.donationTime,
+    //       title: item.title,
+    //       content: item.content,
+    //       image: item?.image,
+    //       status: item.status,
     //     },
     //   };
-    //   const result = await donatorCreateRequestCollection.updateOne(
+    //   const result = await adminAddBlogCollection.updateOne(
     //     filter,
-    //     updateDonorRequestInfo
+    //     updateVolunteerBlogInfo
     //   );
-    //   res.send(result);
-    // });
-
-    // app.delete("/donatorCreateRequest/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id:new ObjectId(id) };
-    //   const result = await donatorCreateRequestCollection.deleteOne(query);
     //   res.send(result);
     // });
 
