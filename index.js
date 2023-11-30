@@ -58,17 +58,20 @@ async function run() {
       res.send(result);
     });
 
-    app.patch("/dashboard/donationUsers/:id", async (req, res) => {
+    app.put("/dashboard/donationUsers/:id", async (req, res) => {
       const item = req.body;
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
       const updateUserInfo = {
         $set: {
           name: item.name,
+          email: item.email,
           district: item.district,
           upazila: item.upazila,
           blodGroup: item.blodGroup,
           image: item.image,
+          role: item.role,
+          status: item.status,
         },
       };
       const result = await donationUserCollection.updateOne(
@@ -147,6 +150,7 @@ async function run() {
           hospitalAddress: item.hospitalAddress,
           donationDate: item.donationDate,
           donationTime: item.donationTime,
+          status: item.status,
         },
       };
       const result = await donatorCreateRequestCollection.updateOne(
