@@ -1,8 +1,9 @@
 const express = require("express");
+const app = express();
 const cors = require("cors");
+const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
-const app = express();
 const port = process.env.PORT || 5000;
 
 // middleware:
@@ -40,6 +41,34 @@ async function run() {
     const adminAddBlogCollection = client
       .db("donationDB")
       .collection("adminAddBlog");
+    const UserFeedBackCollection = client
+      .db("donationDB")
+      .collection("serFeedBack");
+
+    // jwt related api:
+    app.post("/jwt", async (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, {
+        expiresIn: "1h",
+      });
+      res.send({ token });
+    });
+
+    // middleWare:
+    const verifyToken = (req, res, next) => {
+      console.log("inside varify token", req.headers.authorization);
+      if (!req.headers.authorization) {
+        return res.status(401).send({ message: "unAuthorized Access" });
+      }
+      const token = req.headers.authorization.split(" ")[1];
+      jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+        if (err) {
+          return res.status(401).send({ message: "unAuthorized Access" });
+        }
+        req.decoded = decoded;
+        next();
+      });
+    };
 
     // user related api:
     app.post("/donationUsers", async (req, res) => {
@@ -54,6 +83,7 @@ async function run() {
     });
 
     app.get("/donationUsers", async (req, res) => {
+      console.log(req.headers);
       const result = await donationUserCollection.find().toArray();
       res.send(result);
     });
@@ -81,30 +111,75 @@ async function run() {
       res.send(result);
     });
 
-    // app.get('/donationUsers/:email', async (req, res) => {
-    //   const query = { email: req.params.email }
-    //   // if (req.params.email !== req.decoded.email) {
-    //   //   return res.status(403).send({ message: 'forbidden access' });
-    //   // }
-    //   const result = await donationUserCollection.find(query).toArray();
-    //   res.send(result);
-    // })
+    // for admin:
+    app.get("/dashboard/donationUsers/:email", async (req, res) => {
+      const email = req.params.email;
+      // if (email !== req.decoded.email) {
+      //   return req.status(403).send({ message: "forbidden access" });
+      // }
+      const query = { email: email };
+      const user = await donationUserCollection.findOne(query);
+      let admin = false;
+      if (user) {
+        admin = user?.role === "admin";
+      }
+      res.send({ admin });
+    });
 
-    // app.get('/donationUsers', async (req, res) => {
-    //   try {
-    //      if (!req.query.email) {
-    //        return res.status(400).json({ error: "No email provided" });
-    //      }
+    app.patch("/dashboard/donationUsers/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: "admin",
+        },
+      };
+      const result = await donationUserCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
 
-    //      const email = req.query.email;
-    //      const query = { email: email };
-    //      const result = await userCollection.find(query).toArray();
-    //      res.json(result);
-    //    } catch (error) {
-    //      console.error("Error fetching user:", error);
-    //      res.status(500).json({ error: "Internal server error" });
-    //    }
-    //  })
+    // for volunteer:
+    app.get("/dashboard/donationUser/:email", async (req, res) => {
+      const email = req.params.email;
+      // if (email !== req.decoded.email) {
+      //   return req.status(403).send({ message: "forbidden access" });
+      // }
+      const query = { email: email };
+      const user = await donationUserCollection.findOne(query);
+      let volunteer = false;
+      if (user) {
+        volunteer = user?.role === "volunteer";
+      }
+      res.send({ volunteer });
+    });
+    
+    app.patch("/dashboard/donationUser/:id", async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: new ObjectId(id) };
+      const updateDoc = {
+        $set: {
+          role: "volunteer",
+        },
+      };
+      const result = await donationUserCollection.updateOne(filter, updateDoc);
+      res.send(result);
+    });
+
+       // for User FeedBack in Home page:
+       app.post("/userFeedBacks", async (req, res) => {
+        const newUserFeedBacks = req.body;
+        console.log(newUserFeedBacks);
+        const result = await UserFeedBackCollection.insertOne(newUserFeedBacks);
+        res.send(result);
+      });
+  
+      app.get("/userFeedBacks", async (req, res) => {
+        const cursor = UserFeedBackCollection.find();
+        const result = await cursor.toArray();
+        res.send(result);
+      });
+  
+
 
     //  donator District related api:
     app.get("/donatorDistrict", async (req, res) => {
@@ -206,47 +281,6 @@ async function run() {
       res.send(result);
     });
 
-    // // Add Blog Volunteer request related api:
-    // app.post("/volunteerAddBlog", async (req, res) => {
-    //   const blogsContentInfo = req.body;
-    //   console.log(blogsContentInfo);
-    //   const result = await adminAddBlogCollection.insertOne(blogsContentInfo);
-    //   res.send(result);
-    // });
-
-    // app.get("/volunteerAddBlog", async (req, res) => {
-    //   const result = await adminAddBlogCollection.find().toArray();
-    //   res.send(result);
-    // });
-
-    // app.delete("/volunteerAddBlog/:id", async (req, res) => {
-    //   const id = req.params.id;
-    //   const query = { _id: new ObjectId(id) };
-    //   const result = await adminAddBlogCollection.deleteOne(query);
-    //   res.send(result);
-    // });
-
-    // app.put("/dashboard/volunteerAddBlog/:id", async (req, res) => {
-    //   const item = req.body;
-    //   const id = req.params.id;
-    //   const filter = { _id: new ObjectId(id) };
-    //   const updateVolunteerBlogInfo = {
-    //     $set: {
-    //       title: item.title,
-    //       content: item.content,
-    //       image: item?.image,
-    //       status: item.status,
-    //     },
-    //   };
-    //   const result = await adminAddBlogCollection.updateOne(
-    //     filter,
-    //     updateVolunteerBlogInfo
-    //   );
-    //   res.send(result);
-    // });
-
-    // Send a ping to confirm a successful connection
-    // await client.db("admin").command({ ping: 1 });
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
     );
