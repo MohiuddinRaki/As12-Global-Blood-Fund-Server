@@ -70,6 +70,17 @@ async function run() {
       });
     };
 
+    // use verfy admin after verifyToken:
+    const verifyAdmin = async (req, res, next) => {
+      const query = { email: email };
+      const user = await donationUserCollection.findOne(query);
+      const isAdmin = user?.role === "admin";
+      if (!isAdmin) {
+        return res.status(403).send({ message: "forbiden Access" });
+      }
+      next();
+    };
+
     // user related api:
     app.post("/donationUsers", async (req, res) => {
       const user = req.body;
@@ -82,7 +93,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/donationUsers", async (req, res) => {
+    app.get("/donationUsers", verifyToken,verifyAdmin, async (req, res) => {
       console.log(req.headers);
       const result = await donationUserCollection.find().toArray();
       res.send(result);
@@ -112,11 +123,11 @@ async function run() {
     });
 
     // for admin:
-    app.get("/dashboard/donationUsers/:email", async (req, res) => {
+    app.get("/dashboard/donationUsers/:email",verifyToken,verifyAdmin, async (req, res) => {
       const email = req.params.email;
-      // if (email !== req.decoded.email) {
-      //   return req.status(403).send({ message: "forbidden access" });
-      // }
+      if (email !== req.decoded.email) {
+        return req.status(403).send({ message: "forbidden access" });
+      }
       const query = { email: email };
       const user = await donationUserCollection.findOne(query);
       let admin = false;
@@ -139,11 +150,11 @@ async function run() {
     });
 
     // for volunteer:
-    app.get("/dashboard/donationUser/:email", async (req, res) => {
+    app.get("/dashboard/donationUser/:email",verifyToken,verifyAdmin, async (req, res) => {
       const email = req.params.email;
-      // if (email !== req.decoded.email) {
-      //   return req.status(403).send({ message: "forbidden access" });
-      // }
+      if (email !== req.decoded.email) {
+        return req.status(403).send({ message: "forbidden access" });
+      }
       const query = { email: email };
       const user = await donationUserCollection.findOne(query);
       let volunteer = false;
@@ -152,7 +163,7 @@ async function run() {
       }
       res.send({ volunteer });
     });
-    
+
     app.patch("/dashboard/donationUser/:id", async (req, res) => {
       const id = req.params.id;
       const filter = { _id: new ObjectId(id) };
@@ -165,21 +176,19 @@ async function run() {
       res.send(result);
     });
 
-       // for User FeedBack in Home page:
-       app.post("/userFeedBacks", async (req, res) => {
-        const newUserFeedBacks = req.body;
-        console.log(newUserFeedBacks);
-        const result = await UserFeedBackCollection.insertOne(newUserFeedBacks);
-        res.send(result);
-      });
-  
-      app.get("/userFeedBacks", async (req, res) => {
-        const cursor = UserFeedBackCollection.find();
-        const result = await cursor.toArray();
-        res.send(result);
-      });
-  
+    // for User FeedBack in Home page:
+    app.post("/userFeedBacks", async (req, res) => {
+      const newUserFeedBacks = req.body;
+      console.log(newUserFeedBacks);
+      const result = await UserFeedBackCollection.insertOne(newUserFeedBacks);
+      res.send(result);
+    });
 
+    app.get("/userFeedBacks", async (req, res) => {
+      const cursor = UserFeedBackCollection.find();
+      const result = await cursor.toArray();
+      res.send(result);
+    });
 
     //  donator District related api:
     app.get("/donatorDistrict", async (req, res) => {
@@ -203,7 +212,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/donatorCreateRequest", async (req, res) => {
+    app.get("/donatorCreateRequest",verifyToken, verifyAdmin, async (req, res) => {
       const cursor = donatorCreateRequestCollection.find();
       const result = await cursor.toArray();
       res.send(result);
@@ -250,7 +259,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/adminAddBlog", async (req, res) => {
+    app.get("/adminAddBlog",verifyToken, verifyAdmin, async (req, res) => {
       const result = await adminAddBlogCollection.find().toArray();
       res.send(result);
     });
