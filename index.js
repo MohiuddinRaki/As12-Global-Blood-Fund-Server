@@ -41,9 +41,10 @@ async function run() {
     const adminAddBlogCollection = client
       .db("donationDB")
       .collection("adminAddBlog");
+    const contactUsCollection = client.db("donationDB").collection("contactUs");
     const UserFeedBackCollection = client
       .db("donationDB")
-      .collection("serFeedBack");
+      .collection("userFeedBacks");
 
     // jwt related api:
     app.post("/jwt", async (req, res) => {
@@ -93,7 +94,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/donationUsers", verifyToken,verifyAdmin, async (req, res) => {
+    app.get("/donationUsers", async (req, res) => {
       console.log(req.headers);
       const result = await donationUserCollection.find().toArray();
       res.send(result);
@@ -123,17 +124,19 @@ async function run() {
     });
 
     // for admin:
-    app.get("/dashboard/donationUsers/:email",verifyToken,verifyAdmin, async (req, res) => {
+    app.get("/dashboard/donationUsers/:email", async (req, res) => {
       const email = req.params.email;
-      if (email !== req.decoded.email) {
-        return req.status(403).send({ message: "forbidden access" });
-      }
+      // if (email !== req.decoded.email) {
+      //   return req.status(403).send({ message: "forbidden access" });
+      // }
       const query = { email: email };
       const user = await donationUserCollection.findOne(query);
-      let admin = false;
-      if (user) {
-        admin = user?.role === "admin";
-      }
+      // let admin = false;
+      // if (user) {
+      //   admin = user?.role === "admin";
+      // }
+      admin = user?.role === "admin";
+      console.log(admin);
       res.send({ admin });
     });
 
@@ -150,17 +153,18 @@ async function run() {
     });
 
     // for volunteer:
-    app.get("/dashboard/donationUser/:email",verifyToken,verifyAdmin, async (req, res) => {
+    app.get("/dashboard/donationUser/:email", async (req, res) => {
       const email = req.params.email;
-      if (email !== req.decoded.email) {
-        return req.status(403).send({ message: "forbidden access" });
-      }
+      // if (email !== req.decoded.email) {
+      //   return req.status(403).send({ message: "forbidden access" });
+      // }
       const query = { email: email };
       const user = await donationUserCollection.findOne(query);
-      let volunteer = false;
-      if (user) {
-        volunteer = user?.role === "volunteer";
-      }
+      // let volunteer = false;
+      // if (user) {
+      //   volunteer = user?.role === "volunteer";
+      // }
+      volunteer = user?.role === "volunteer";
       res.send({ volunteer });
     });
 
@@ -176,7 +180,7 @@ async function run() {
       res.send(result);
     });
 
-    // for User FeedBack in Home page:
+    // // for User FeedBack in Home page:
     app.post("/userFeedBacks", async (req, res) => {
       const newUserFeedBacks = req.body;
       console.log(newUserFeedBacks);
@@ -187,6 +191,13 @@ async function run() {
     app.get("/userFeedBacks", async (req, res) => {
       const cursor = UserFeedBackCollection.find();
       const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    app.delete("/userFeedBacks/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await UserFeedBackCollection.deleteOne(query);
       res.send(result);
     });
 
@@ -212,7 +223,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/donatorCreateRequest",verifyToken, verifyAdmin, async (req, res) => {
+    app.get("/donatorCreateRequest", async (req, res) => {
       const cursor = donatorCreateRequestCollection.find();
       const result = await cursor.toArray();
       res.send(result);
@@ -259,7 +270,7 @@ async function run() {
       res.send(result);
     });
 
-    app.get("/adminAddBlog",verifyToken, verifyAdmin, async (req, res) => {
+    app.get("/adminAddBlog", async (req, res) => {
       const result = await adminAddBlogCollection.find().toArray();
       res.send(result);
     });
@@ -287,6 +298,14 @@ async function run() {
         filter,
         updateAdminBlogInfo
       );
+      res.send(result);
+    });
+
+    // Contact Us api:
+    app.post("/contactUs", async (req, res) => {
+      const blogsContentInfo = req.body;
+      console.log(blogsContentInfo);
+      const result = await contactUsCollection.insertOne(blogsContentInfo);
       res.send(result);
     });
 
