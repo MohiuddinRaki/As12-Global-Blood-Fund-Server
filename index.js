@@ -5,6 +5,8 @@ const jwt = require("jsonwebtoken");
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 require("dotenv").config();
 const port = process.env.PORT || 5000;
+// const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+// console.log(process.env.STRIPE_SECRET_KEY);
 
 // middleware:
 app.use(cors());
@@ -45,6 +47,7 @@ async function run() {
     const UserFeedBackCollection = client
       .db("donationDB")
       .collection("userFeedBacks");
+    // const paymentCollection = client.db("donationDB").collection("payments");
 
     // jwt related api:
     app.post("/jwt", async (req, res) => {
@@ -308,6 +311,19 @@ async function run() {
       const result = await contactUsCollection.insertOne(blogsContentInfo);
       res.send(result);
     });
+
+    // app.post("/create-payment-intent", async (req, res) => {
+    //   const { donation } = req.body;
+    //   const amount = parseInt(donation * 100);
+    //   const paymentIntent = await stripe.paymentIntents.create({
+    //     amount: amount,
+    //     currency: "usd",
+    //     payment_method_types: ["card"],
+    //   });
+    //   res.send({
+    //     clientSecret: paymentIntent.client_secret,
+    //   });
+    // });
 
     console.log(
       "Pinged your deployment. You successfully connected to MongoDB!"
